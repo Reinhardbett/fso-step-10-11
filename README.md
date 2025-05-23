@@ -158,13 +158,69 @@ npm remove cors
 
 ---
 
-## ✅ Final Setup Summary
+## 🧱 **Models in Mongoose**
 
-| Scenario           | Setup Required                                               |
-|--------------------|--------------------------------------------------------------|
-| Development        | Use `cors` **or** Vite proxy to `localhost:3001`             |
-| Production         | Serve React frontend from `express.static('dist')`           |
-| Consistent URLs    | Use **relative URLs** (`/api/persons`) in frontend code        |
+Models are constructor functions that create new JavaScript objects based on a defined schema. These objects include all the properties and methods specified in the schema, including methods to interact with the database.
+
+### Saving an object
+
+To save a new object to the database, use the `save` method, which returns a promise:
+
+```js
+Person.save().then(result => {
+  console.log('person saved!');
+  mongoose.connection.close();
+});
+```
+
+### Retrieving objects
+
+To retrieve all documents from the collection, use the find method with an empty object as the search criteria:
+
+```js
+Person.find({}).then(result => {
+  result.forEach(person => {
+    console.log(person);
+  });
+  mongoose.connection.close();
+});
+```
+
+### Deleting an object
+
+You can delete an object using Mongoose's findByIdAndDelete method:
+
+```js
+app.delete('/api/notes/:id', (request, response, next) => {
+  Person.findByIdAndDelete(request.params.id)
+    .then(result => {
+      response.status(204).end();
+    })
+    .catch(error => next(error));
+});
+```
+
+## 🔧 Formatting JSON Output
+
+By default, Mongoose includes fields like _id and __v that aren't always useful for frontend applications. To clean up the returned JSON, you can override the toJSON method in the schema:
+
+```js
+personSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  }
+});
+```
+
+---
+
+## ⚠️ Error Handling and Status Codes
+
+- `400 Bad Request`: If name or number is missing or not unique.
+- `404 Not Found`: If person is not found during lookup by ID.
+- `204 No Content`: On successful deletion of a contact.
 
 ---
 
@@ -184,13 +240,32 @@ backend/
 
 ## 🧠 Recap of Core Concepts
 
-- ✅ **Same-Origin Policy** blocks cross-origin API requests by default
-- ✅ Use **CORS** for development cross-origin communication
-- ✅ Use `app.use(express.static('dist'))` to serve frontend
-- ✅ Use **relative URLs** to simplify frontend API logic
-- ✅ Configure **Vite proxy** for seamless development experience
-- ✅ Remove CORS once everything shares the same origin in production
-
+- **Same-Origin Policy** blocks cross-origin API requests by default
+- Use **CORS** for development cross-origin communication
+- Use `app.use(express.static('dist'))` to serve frontend
+- Use **relative URLs** to simplify frontend API logic
+- Configure **Vite proxy** for seamless development experience
+- Remove CORS once everything shares the same origin in production
+- Setting up an Express server
+- Creating RESTful routes (GET, POST, DELETE)
+- Using middleware: `express.json()` for parsing JSON
+- Custom middleware for tracking request timestamps
+- Using `morgan` for logging HTTP requests with a custom token
+- Responding with appropriate HTTP status codes: `200`, `201`, `204`, `400`, `404`
+- Filtering and finding objects within an array
+- Data validation for POST requests
+- Returning custom error messages for invalid or duplicate inputs
+- Avoiding multiple responses using `return` before `res` calls in conditional branches
+- Managing in-memory data updates properly (especially in DELETE route)
+- Formatting HTML responses with line breaks using `<br>`
+- Define and use Mongoose models
+- Save and fetch data from MongoDB
+- Format returned JSON for frontend use
+- Centralize error handling with middleware
+- Perform CRUD operations via RESTful routes
 
 
 Link to deployed backend: https://fso-step-10-11-rfah.onrender.com
+
+
+Made with ❤️ during the Full Stack Open course.
